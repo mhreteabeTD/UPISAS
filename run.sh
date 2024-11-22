@@ -1,3 +1,5 @@
 #!/bin/bash
 export PYTHONPATH=$PYTHONPATH:/UPISAS
-python3 experiment-runner/experiment-runner/ UPISAS/experiment_runner_configs/SWIM_example.py
+
+# Run the experiment
+python3 experiment-runner/experiment-runner/ UPISAS/experiment_runner_configs/Wildfire_UAV.py
