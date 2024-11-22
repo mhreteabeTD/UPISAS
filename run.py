@@ -1,5 +1,6 @@
 from UPISAS.strategies.swim_reactive_strategy import ReactiveAdaptationManager
 from UPISAS.strategies.random_UAV_movement import RandomUAVStrategy
+from UPISAS.strategies.baseline_strategy import BaselineSpiralStrategy
 from UPISAS.exemplar import Exemplar
 from UPISAS.exemplars.swim import SWIM
 from UPISAS.exemplars.Wildfire import WildfireUAVExemplar
@@ -15,7 +16,7 @@ if __name__ == '__main__':
     time.sleep(3)
 
     try:
-        strategy = RandomUAVStrategy(exemplar)
+        strategy = BaselineSpiralStrategy(exemplar)
         strategy.get_monitor_schema()
         strategy.get_adaptation_options_schema()
         strategy.get_execute_schema()

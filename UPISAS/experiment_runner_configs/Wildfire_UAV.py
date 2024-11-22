@@ -58,7 +58,7 @@ class RunnerConfig:
         self.run_table_model = RunTableModel(
             factors=[factor1],
             exclude_variations=[],
-            data_columns=['MR1', 'MR2']  # Add metrics to track
+            data_columns=['MR1_1','MR1_2','MR1_3' ,'MR1_AVG','MR2']  # Add metrics to track
         )
         return self.run_table_model
 
@@ -91,8 +91,8 @@ class RunnerConfig:
         self.strategy.get_adaptation_options_schema()
         self.strategy.get_execute_schema()
 
-        while time_slept < 30:  # Run the strategy for 30 seconds
-            self.strategy.monitor(verbose=True)
+        while time_slept < 60 * 5:  # Run the strategy for 30 seconds
+            self.strategy.monitor(verbose=False)
             self.strategy.analyze()
             self.strategy.plan()
             self.strategy.execute()
@@ -111,14 +111,50 @@ class RunnerConfig:
         self.exemplar.stop_container()
         output.console_log("Config.stop_run() called!")
 
-    def populate_run_data(self, context: RunnerContext) -> Optional[Dict[str, SupportsStr]]:
-        """Parse and process any measurement data here."""
-        mon_data = self.strategy.knowledge.monitored_data
-        mr1_avg = sum(mon_data["MR1"]) / len(mon_data["MR1"]) if mon_data["MR1"] else 0
-        mr2 = mon_data["MR2"][-1] if "MR2" in mon_data and mon_data["MR2"] else 0
+    def populate_run_data(self, context: RunnerContext) -> List[Dict[str, any]]:
+        """
+        Parse and process measurement data for each simulation run.
+        Each item in the list contains MR1 and MR2 values for that run,
+        and the function collects these along with UAV details.
+        """
+        # Retrieve the list of all runs, which are dictionaries containing MR1, MR2, and UAV details
+        simulation_runs = self.strategy.knowledge.monitored_data['dynamicValues']
 
-        output.console_log(f"Config.populate_run_data(): MR1={mr1_avg}, MR2={mr2}")
-        return {"MR1": mr1_avg, "MR2": mr2}
+        # Initialize a list to store the results for each run
+        run_results = []
+        mr1_1 = []
+        mr1_2 = []
+        mr1_3 = []
+        mr1_avg_values= []
+        mr2 = []
+        # Iterate over each run
+        for run in simulation_runs:
+            mr1_values = run.get('MR1', [])
+            mr2_value = run.get('MR2', 0)
+            uav_details = run.get('uavDetails', [])
+
+            # Calculate the average MR1 for this run if there are any MR1 values
+            mr1_avg = sum(mr1_values) / len(mr1_values) if mr1_values else 0
+
+            mr1_avg_values.append(mr1_avg)
+            mr1_1.append(mr1_values[0] if len(mr1_values) > 0 else 0)
+            mr1_2.append(mr1_values[1] if len(mr1_values) > 1 else 0)
+            mr1_3.append(mr1_values[2] if len(mr1_values) > 2 else 0)
+            mr2.append(mr2_value)
+            # Log each run's data
+            # output.console_log(f"Run data: MR1 Average={mr1_avg}, MR2={mr2_value}, UAVs={uav_details}")
+
+        run_data = {
+            "MR1_1": mr1_1,
+            "MR1_2": mr1_2,
+            "MR1_3": mr1_3,
+            "MR1_AVG": mr1_avg_values,
+            "MR2": mr2
+        }
+            
+        # Return the data for all runs
+        return run_data
+
 
     def after_experiment(self) -> None:
         """Perform any activity required after stopping the experiment."""
